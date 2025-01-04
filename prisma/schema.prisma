@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Exercise {
+  id   Int     @id @default(autoincrement())
+  uuid String? @unique @default(uuid()) @db.Uuid
+
+  name                   String                    @db.VarChar(40)
+  description            String                    @db.VarChar()
+  exerciseOnTrainingPlans ExerciseOnTrainingPlans[]
+  exerciseOnTrainingSessions ExerciseOnTrainingSessions[]
+
+  @@map("exercises")
+}
+
+model TrainingPlan {
+  id   Int     @id @default(autoincrement())
+  uuid String? @unique @default(uuid()) @db.Uuid
+
+  name                   String                    @db.VarChar(30)
+  description            String                    @db.VarChar(200)
+  exerciseOnTrainingPlans ExerciseOnTrainingPlans[]
+
+  trainingSession TrainingSession[]
+
+  @@map("trainingPlans")
+}
+model ExerciseOnTrainingSessions {
+  id Int @id @default(autoincrement())
+  uuid String? @unique @default(uuid()) @db.Uuid
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
+  exerciseId Int
+
+  traningSessionId Int
+  trainingSession TrainingSession @relation(fields: [traningSessionId], references: [id])
+}
+
+model ExerciseOnTrainingPlans {
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  exerciseId Int
+
+  trainingPlan   TrainingPlan @relation(fields: [trainingPlanId], references: [id])
+  trainingPlanId Int
+
+  repetitions Int
+  sets        Int
+  weight      Int?
+
+  @@id([exerciseId, trainingPlanId])
+  @@map("exerciseOnTrainingPlans")
+}
+
+model TrainingSession {
+  id   Int     @id @default(autoincrement())
+  uuid String? @unique @default(uuid()) @db.Uuid
+
+  basePlanId Int
+  basePlan   TrainingPlan @relation(fields: [basePlanId], references: [id])
+
+  dateStarted DateTime? @default(now()) @db.Timestamptz()
+  isCompleted Boolean
+
+  exerciseOnTrainingSessions ExerciseOnTrainingSessions[]
+  @@map("trainingSessions")
+}
+
+model User {
+  id   Int     @id @default(autoincrement())
+  uuid String? @unique @default(uuid()) @db.Uuid
+
+  username String @db.VarChar(15)
+
+  @@map("users")
+}
