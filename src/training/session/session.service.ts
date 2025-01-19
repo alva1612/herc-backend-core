@@ -1,26 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { CreateSessionDto } from './dto/create-session.dto';
-import { UpdateSessionDto } from './dto/update-session.dto';
+import { CreateSessionTempDto } from './dto/create-session.dto';
+import { PrismaService } from 'src/common/prisma.service';
 
 @Injectable()
 export class SessionService {
-  create(createSessionDto: CreateSessionDto) {
-    return 'This action adds a new session';
+
+  constructor(private clientService: PrismaService) {}
+
+  create(createSessionDto: CreateSessionTempDto) {
+    const client = this.clientService.getClient();
+
+    const result = client.exerciseOnTrainingSessionsTemp.create({
+      data: createSessionDto.getDto()
+    });
+
+    return result;
   }
 
-  findAll() {
-    return `This action returns all session`;
-  }
+  // findAll() {
+  //   return `This action returns all session`;
+  // }
 
-  findOne(id: number) {
-    return `This action returns a #${id} session`;
-  }
+  // findOne(id: number) {
+  //   return `This action returns a #${id} session`;
+  // }
 
-  update(id: number, updateSessionDto: UpdateSessionDto) {
-    return `This action updates a #${id} session`;
-  }
+  // update(id: number, updateSessionDto: UpdateSessionDto) {
+  //   return `This action updates a #${id} session`;
+  // }
 
-  remove(id: number) {
-    return `This action removes a #${id} session`;
-  }
+  // remove(id: number) {
+  //   return `This action removes a #${id} session`;
+  // }
 }

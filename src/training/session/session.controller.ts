@@ -1,34 +1,40 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { SessionService } from './session.service';
-import { CreateSessionDto } from './dto/create-session.dto';
-import { UpdateSessionDto } from './dto/update-session.dto';
+import { CreateSessionTempDto } from './dto/create-session.dto';
 
 @Controller('session')
 export class SessionController {
   constructor(private readonly sessionService: SessionService) {}
 
   @Post()
-  create(@Body() createSessionDto: CreateSessionDto) {
-    return this.sessionService.create(createSessionDto);
+  createTemp(@Body() createSessionDto: typeof CreateSessionTempDto) {
+    const dto = new CreateSessionTempDto(createSessionDto)
+    return this.sessionService.create(dto);
   }
 
-  @Get()
-  findAll() {
-    return this.sessionService.findAll();
-  }
+  // @Post('unavailable')
+  // create(@Body() createSessionDto: CreateSessionDto) {
+  //   return this.sessionService.create(createSessionDto);
+  // }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.sessionService.findOne(+id);
-  }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSessionDto: UpdateSessionDto) {
-    return this.sessionService.update(+id, updateSessionDto);
-  }
+  // @Get()
+  // findAll() {
+  //   return this.sessionService.findAll();
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sessionService.remove(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.sessionService.findOne(+id);
+  // }
+
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateSessionDto: UpdateSessionDto) {
+  //   return this.sessionService.update(+id, updateSessionDto);
+  // }
+
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.sessionService.remove(+id);
+  // }
 }
