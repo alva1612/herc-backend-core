@@ -1,35 +1,48 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSessionTempDto } from './dto/create-session.dto';
 import { PrismaService } from 'src/common/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class SessionService {
 
-  constructor(private clientService: PrismaService) {}
+  constructor(private clientService: PrismaService) { }
 
-  create(createSessionDto: CreateSessionTempDto) {
+  async create(createSessionDto: CreateSessionTempDto) {
     const client = this.clientService.getClient();
 
-    const result = client.exerciseOnTrainingSessionsTemp.create({
+    const result = await client.exerciseOnTrainingSessionsTemp.create({
       data: createSessionDto.getDto()
     });
 
     return result;
   }
 
-  // findAll() {
-  //   return `This action returns all session`;
-  // }
+  async findAll(filters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where']) {
+    const client = this.clientService.getClient();
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} session`;
-  // }
-
-  // update(id: number, updateSessionDto: UpdateSessionDto) {
-  //   return `This action updates a #${id} session`;
-  // }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} session`;
-  // }
+    const data = await client.exerciseOnTrainingSessionsTemp.findMany({
+      select: {
+        dateRegistered: true,
+        uuid: true,
+        weight: true,
+        exercise: {
+          select: {
+            uuid: true,
+            name: true,
+            description: true
+          }
+        },
+        repetitions: true
+      },
+      where: filters
+    })
+    const total = await client.exerciseOnTrainingSessionsTemp.count({
+      where: filters
+    })
+    return {
+      data,
+      total
+    }
+  }
 }

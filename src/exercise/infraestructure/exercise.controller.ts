@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query } from '@nestjs/common';
 import { ExerciseService } from '../exercise.service';
 import { CreateExerciseDto } from '../dto/create-exercise.dto';
 
@@ -11,23 +11,8 @@ export class ExerciseController {
     return this.exerciseService.create(createExerciseDto);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.exerciseService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.exerciseService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateExerciseDto: UpdateExerciseDto) {
-  //   return this.exerciseService.update(+id, updateExerciseDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.exerciseService.remove(+id);
-  // }
+  @Get()
+  findAll(@Query('filters') filters = "{}") {
+    return this.exerciseService.findAll(JSON.parse(filters));
+  }
 }

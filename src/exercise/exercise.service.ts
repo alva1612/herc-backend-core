@@ -1,30 +1,39 @@
 import { Injectable } from '@nestjs/common';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { PrismaService } from 'src/common/prisma.service';
+import { Prisma } from '@prisma/client';
+
+type FindManyArgs = {
+  filters: Prisma.ExerciseFindManyArgs['where']
+}
 
 @Injectable()
 export class ExerciseService {
 
-  constructor(private readonly clientService: PrismaService) {}
+  constructor(private readonly clientService: PrismaService) { }
 
   create(createExerciseDto: CreateExerciseDto) {
     const client = this.clientService.getClient();
-    return client.exercise.create({data: createExerciseDto})
+    return client.exercise.create({ data: createExerciseDto })
   }
 
-  // findAll() {
-  //   return `This action returns all exercise`;
-  // }
+  async findAll(where: FindManyArgs['filters']) {
+    const data = await this.clientService.getClient().exercise.findMany({
+      select: {
+        uuid: true,
+        name: true,
+        description: true
+      },
+      where
+    });
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} exercise`;
-  // }
+    const total = await this.clientService.getClient().exercise.count({
+      where
+    });
 
-  // update(id: number, updateExerciseDto: UpdateExerciseDto) {
-  //   return `This action updates a #${id} exercise`;
-  // }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} exercise`;
-  // }
+    return {
+      data,
+      total
+    }
+  }
 }
