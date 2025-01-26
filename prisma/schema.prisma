@@ -61,7 +61,7 @@ model ExerciseOnTrainingPlans {
 
   repetitions Int
   sets        Int
-  weight      Int?
+  weight      Decimal? @db.Decimal(5, 2)
 
   @@id([exerciseId, trainingPlanId])
   @@map("exerciseOnTrainingPlans")
@@ -96,7 +96,7 @@ model ExerciseOnTrainingSessionsTemp {
   uuid String @unique @default(uuid()) @db.Uuid
 
   repetitions    Int
-  weight         Int
+  weight         Decimal @db.Decimal(5,2)
 
   exercise   Exercise @relation(fields: [exerciseId], references: [id])
   exerciseId Int
