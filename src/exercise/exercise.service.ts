@@ -24,7 +24,7 @@ export class ExerciseService {
         name: true,
         description: true
       },
-      where
+      where,
     });
 
     const total = await this.clientService.getClient().exercise.count({

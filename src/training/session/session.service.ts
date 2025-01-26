@@ -35,6 +35,9 @@ export class SessionService {
         },
         repetitions: true
       },
+      orderBy: {
+        dateRegistered: "desc",
+      },
       where: filters
     })
     const total = await client.exerciseOnTrainingSessionsTemp.count({
