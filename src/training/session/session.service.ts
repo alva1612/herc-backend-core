@@ -45,6 +45,7 @@ export class SessionService {
     const total = await client.exerciseOnTrainingSessionsTemp.count({
       where: whereCondition
     })
+
     return {
       data: data.map((x) => {
         const rawDate = new Date(x.dateRegistered);
