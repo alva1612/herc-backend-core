@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Get, Query } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { CreateSessionTempDto } from './dto/create-session.dto';
+import { ListSessionDto } from './dto/list-session.dto';
 
 @Controller('session')
 export class SessionController {
@@ -18,8 +19,8 @@ export class SessionController {
   // }
 
   @Get()
-  findAll(@Query('filter') filters = "{}") {
-    return this.sessionService.findAll(JSON.parse(filters));
+  findAll(@Query() queryParams) {
+    return this.sessionService.findAll(new ListSessionDto(queryParams));
   }
 
   // @Get(':id')

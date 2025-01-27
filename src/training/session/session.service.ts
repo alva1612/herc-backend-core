@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateSessionTempDto } from './dto/create-session.dto';
 import { PrismaService } from 'src/common/prisma.service';
 import { Prisma } from '@prisma/client';
+import { ListSessionDto, ListSessionsCustomFilters } from './dto/list-session.dto';
 
 @Injectable()
 export class SessionService {
@@ -18,8 +19,9 @@ export class SessionService {
     return result;
   }
 
-  async findAll(filters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where']) {
+  async findAll({filters, customFilters}: ListSessionDto) {
     const client = this.clientService.getClient();
+    const whereCondition = this.parseCustomFilters(filters, customFilters);
 
     const data = await client.exerciseOnTrainingSessionsTemp.findMany({
       select: {
@@ -38,14 +40,41 @@ export class SessionService {
       orderBy: {
         dateRegistered: "desc",
       },
-      where: filters
+      where: whereCondition
     })
     const total = await client.exerciseOnTrainingSessionsTemp.count({
-      where: filters
+      where: whereCondition
     })
+
     return {
-      data,
+      data: data.map((x) => {
+        const rawDate = new Date(x.dateRegistered);
+        const hours = rawDate.getHours();
+        rawDate.setHours(hours - 5);
+        return {
+          ...x,
+          dateRegistered: rawDate.toISOString()
+        }
+        
+      }),
       total
     }
+  }
+
+  parseCustomFilters(baseFilters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] ,customFilter: ListSessionsCustomFilters): Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] {
+    switch(customFilter) {
+      case 'today':
+        const today = new Date()
+        today.setHours(0, 0, 0)
+        return {
+          ...baseFilters,
+          dateRegistered: {
+            gte: today
+          }
+        }
+      default:
+        return baseFilters;
+    }
+      
   }
 }
