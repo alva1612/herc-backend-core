@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Query, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param, NotFoundException } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { CreateSessionTempDto } from './dto/create-session.dto';
 import { ListSessionDto } from './dto/list-session.dto';
@@ -24,8 +24,11 @@ export class SessionController {
   }
 
   @Get('last/:exerciseUuid')
-  findLastTempSessionByExercise(@Param('exerciseUuid') exerciseUuid) {
-    return this.sessionService.findLastSessionByExercise(exerciseUuid);
+  async findLastTempSessionByExercise(@Param('exerciseUuid') exerciseUuid) {
+    const res = await this.sessionService.findLastSessionByExercise(exerciseUuid);
+    if (!res) {
+      throw new NotFoundException();
+    }
   }
 
   // @Get(':id')

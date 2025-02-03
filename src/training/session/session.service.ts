@@ -4,6 +4,10 @@ import { PrismaService } from 'src/common/prisma.service';
 import { Prisma } from '@prisma/client';
 import { ListSessionDto, ListSessionsCustomFilters } from './dto/list-session.dto';
 
+const SECOND_VALUE = 1000
+const MINUTE_VALUE = SECOND_VALUE * 60
+const HOUR_VALUE = MINUTE_VALUE * 60
+
 @Injectable()
 export class SessionService {
 
@@ -63,7 +67,7 @@ export class SessionService {
 
   async findLastSessionByExercise(exerciseUuid: string) {
     const client = this.clientService.getClient();
-    const result = await client.exerciseOnTrainingSessionsTemp.findFirstOrThrow({
+    const result = await client.exerciseOnTrainingSessionsTemp.findFirst({
       select: {
         exercise: {
           select: {
@@ -96,12 +100,14 @@ export class SessionService {
   parseCustomFilters(baseFilters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'], customFilter: ListSessionsCustomFilters): Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] {
     switch (customFilter) {
       case 'today':
-        const today = new Date()
-        today.setHours(0, 0, 0)
+        const today = new Date().setHours(0, 0, 0).valueOf();
+        // ajuste por utc -5
+        const toBogotaVal = today - 5 * HOUR_VALUE;
+        const toBogota = new Date(toBogotaVal);
         return {
           ...baseFilters,
           dateRegistered: {
-            gte: today
+            gte: toBogota
           }
         }
       default:
