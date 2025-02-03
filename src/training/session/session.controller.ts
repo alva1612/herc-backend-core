@@ -1,11 +1,11 @@
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Param } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { CreateSessionTempDto } from './dto/create-session.dto';
 import { ListSessionDto } from './dto/list-session.dto';
 
 @Controller('session')
 export class SessionController {
-  constructor(private readonly sessionService: SessionService) {}
+  constructor(private readonly sessionService: SessionService) { }
 
   @Post()
   createTemp(@Body() createSessionDto: typeof CreateSessionTempDto) {
@@ -21,6 +21,11 @@ export class SessionController {
   @Get()
   findAll(@Query() queryParams) {
     return this.sessionService.findAll(new ListSessionDto(queryParams));
+  }
+
+  @Get('last/:exerciseUuid')
+  findLastTempSessionByExercise(@Param('exerciseUuid') exerciseUuid) {
+    return this.sessionService.findLastSessionByExercise(exerciseUuid);
   }
 
   // @Get(':id')

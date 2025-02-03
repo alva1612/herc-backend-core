@@ -19,7 +19,7 @@ export class SessionService {
     return result;
   }
 
-  async findAll({filters, customFilters}: ListSessionDto) {
+  async findAll({ filters, customFilters }: ListSessionDto) {
     const client = this.clientService.getClient();
     const whereCondition = this.parseCustomFilters(filters, customFilters);
 
@@ -55,14 +55,46 @@ export class SessionService {
           ...x,
           dateRegistered: rawDate.toISOString()
         }
-        
+
       }),
       total
     }
   }
 
-  parseCustomFilters(baseFilters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] ,customFilter: ListSessionsCustomFilters): Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] {
-    switch(customFilter) {
+  async findLastSessionByExercise(exerciseUuid: string) {
+    const client = this.clientService.getClient();
+    const result = await client.exerciseOnTrainingSessionsTemp.findFirstOrThrow({
+      select: {
+        exercise: {
+          select: {
+            name: true
+          }
+        },
+        uuid: true,
+        repetitions: true,
+        weight: true,
+        dateRegistered: true
+      },
+      where: {
+        exercise: {
+          uuid: exerciseUuid
+        }
+      },
+      orderBy: {
+        dateRegistered: 'desc'
+      },
+      take: 1
+    })
+
+    return {
+      data: result
+    };
+
+
+  }
+
+  parseCustomFilters(baseFilters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'], customFilter: ListSessionsCustomFilters): Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] {
+    switch (customFilter) {
       case 'today':
         const today = new Date()
         today.setHours(0, 0, 0)
@@ -75,6 +107,6 @@ export class SessionService {
       default:
         return baseFilters;
     }
-      
+
   }
 }
