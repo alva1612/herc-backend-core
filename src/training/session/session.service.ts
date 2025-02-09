@@ -63,7 +63,7 @@ export class SessionService {
 
   async findLastSessionByExercise(exerciseUuid: string) {
     const client = this.clientService.getClient();
-    const result = await client.exerciseOnTrainingSessionsTemp.findFirstOrThrow({
+    const result = await client.exerciseOnTrainingSessionsTemp.findFirst({
       select: {
         exercise: {
           select: {
@@ -89,8 +89,6 @@ export class SessionService {
     return {
       data: result
     };
-
-
   }
 
   parseCustomFilters(baseFilters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'], customFilter: ListSessionsCustomFilters): Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] {
