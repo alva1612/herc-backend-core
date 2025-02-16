@@ -5,11 +5,11 @@ import { ListSessionDto } from './dto/list-session.dto';
 
 @Controller('session')
 export class SessionController {
-  constructor(private readonly sessionService: SessionService) { }
+  constructor(private readonly sessionService: SessionService) {}
 
   @Post()
   createTemp(@Body() createSessionDto: typeof CreateSessionTempDto) {
-    const dto = new CreateSessionTempDto(createSessionDto)
+    const dto = new CreateSessionTempDto(createSessionDto);
     return this.sessionService.create(dto);
   }
 

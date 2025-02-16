@@ -103,5 +103,17 @@ model ExerciseOnTrainingSessionsTemp {
 
   dateRegistered DateTime
 
+  trainingSessionGroupId Int
+  trainingSessionGroupTemp TrainingSessionGroupTemp @relation(fields: [trainingSessionGroupId], references: [id])
+
   @@map("exerciseOnTrainingPlansTemp")
+}
+
+model TrainingSessionGroupTemp {
+  id Int @id @default(autoincrement())
+  uuid String @unique @default(uuid()) @db.Uuid
+
+  trainingSessions ExerciseOnTrainingSessionsTemp[]
+
+  @@map("trainingSessionGroupTemp")
 }

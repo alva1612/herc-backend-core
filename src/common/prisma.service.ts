@@ -1,17 +1,17 @@
-import { Injectable } from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
+import { Injectable } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 
-const client = new PrismaClient()
+const client = new PrismaClient();
 
 @Injectable()
 export class PrismaService {
-    private prismaClient: PrismaClient
+  private prismaClient: PrismaClient;
 
-    constructor() {
-        this.prismaClient = client;
-    }
+  constructor() {
+    this.prismaClient = client;
+  }
 
-    getClient() {
-        return this.prismaClient;
-    }
+  getClient() {
+    return this.prismaClient;
+  }
 }
