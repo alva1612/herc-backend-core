@@ -1,61 +1,57 @@
 import { Prisma } from '@prisma/client';
+import { PrismaUtils } from 'src/common/prisma.utils';
 
 export class CreateSessionTempDto {
   repetitions: number;
   weight: number;
 
-  exerciseId: number;
-  exerciseUuid: string;
+  exercise: {
+    id: number
+    uuid: string
+  }
+  sessionGroup: {
+    id: number
+    uuid: string
+  }
+  dateRegistered: Date
   constructor(createPayload) {
     this.repetitions = createPayload.repetitions;
     this.weight = createPayload.weight;
-    this.exerciseId = createPayload.exerciseId;
-    this.exerciseUuid = createPayload.exerciseUuid;
+    this.exercise = createPayload.exercise
+    this.sessionGroup = createPayload.sessionGroup
+    this.dateRegistered = new Date()
   }
 
   getDto(): Prisma.ExerciseOnTrainingSessionsTempCreateArgs['data'] {
-    const dto = {
+    return {
       repetitions: this.repetitions,
       weight: this.weight,
-      dateRegistered: new Date(),
+      dateRegistered: this.dateRegistered,
+      exercise: {
+        connect: PrismaUtils.getEitherUniqueField(this.exercise)
+      },
+      trainingSessionGroupTemp: {
+        connect: PrismaUtils.getEitherUniqueField(this.sessionGroup)
+      },
     };
-    if (this.exerciseId) {
-      return {
-        ...dto,
-        exercise: {
-          connect: {
-            id: this.exerciseId,
-          },
-        },
-      };
-    }
-    if (this.exerciseUuid) {
-      return {
-        ...dto,
-        exercise: {
-          connect: {
-            uuid: this.exerciseUuid,
-          },
-        },
-      };
-    }
   }
 }
 
 export class CreateSessionGroupDto {
-  trainingSessions: { trainingSessionUuid: string }[];
+  trainingSets: { trainingSetsUuid: string }[];
+  dateStart: Date
 
   constructor(createSessionGroupDto) {
-    this.trainingSessions = createSessionGroupDto;
+    this.trainingSets = createSessionGroupDto.trainingSets;
+    this.dateStart = new Date()
   }
 
   getDto(): Prisma.TrainingSessionGroupTempCreateInput {
     return {
-        trainingSessions: {
-            connect: {
-                uuid: this.trainingSessions.map(v => v.trainingSessionUuid)
-            }
-        }
+        trainingSets: {
+          connect: this.trainingSets.map(v => ({uuid: v.trainingSetsUuid}))
+        },
+        dateStart: this.dateStart
     }
   }
 }

@@ -18,7 +18,7 @@ model Exercise {
   uuid String? @unique @default(uuid()) @db.Uuid
 
   name                           String                           @db.VarChar(40)
-  description                    String?                           @db.VarChar()
+  description                    String?                          @db.VarChar()
   exerciseOnTrainingPlans        ExerciseOnTrainingPlans[]
   exerciseOnTrainingSessions     ExerciseOnTrainingSessions[]
   exerciseOnTrainingSessionsTemp ExerciseOnTrainingSessionsTemp[]
@@ -34,7 +34,7 @@ model TrainingPlan {
   description             String                    @db.VarChar(200)
   exerciseOnTrainingPlans ExerciseOnTrainingPlans[]
 
-  trainingSession                TrainingSession[]
+  trainingSession TrainingSession[]
 
   @@map("trainingPlans")
 }
@@ -74,8 +74,8 @@ model TrainingSession {
   basePlanId Int
   basePlan   TrainingPlan @relation(fields: [basePlanId], references: [id])
 
-  dateStarted DateTime? @default(now()) @db.Timestamptz()
-  isCompleted Boolean
+  dateStart DateTime @default(now()) @db.Timestamptz()
+  dateEnd DateTime?
 
   exerciseOnTrainingSessions ExerciseOnTrainingSessions[]
 
@@ -95,25 +95,28 @@ model ExerciseOnTrainingSessionsTemp {
   id   Int    @id @default(autoincrement())
   uuid String @unique @default(uuid()) @db.Uuid
 
-  repetitions    Int
-  weight         Decimal @db.Decimal(5,2)
+  repetitions Int
+  weight      Decimal @db.Decimal(5, 2)
 
   exercise   Exercise @relation(fields: [exerciseId], references: [id])
   exerciseId Int
 
   dateRegistered DateTime
 
-  trainingSessionGroupId Int
+  trainingSessionGroupId   Int
   trainingSessionGroupTemp TrainingSessionGroupTemp @relation(fields: [trainingSessionGroupId], references: [id])
 
   @@map("exerciseOnTrainingPlansTemp")
 }
 
 model TrainingSessionGroupTemp {
-  id Int @id @default(autoincrement())
+  id   Int    @id @default(autoincrement())
   uuid String @unique @default(uuid()) @db.Uuid
 
-  trainingSessions ExerciseOnTrainingSessionsTemp[]
+  trainingSets ExerciseOnTrainingSessionsTemp[]
+
+  dateStart DateTime
+  dateEnd DateTime?
 
   @@map("trainingSessionGroupTemp")
 }
