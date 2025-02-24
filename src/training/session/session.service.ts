@@ -79,7 +79,11 @@ export class SessionService {
 
     const data = await client.trainingSessionGroupTemp.findMany({
       include: {
-        trainingSets: true
+        trainingSets: {
+          include: {
+            exercise: true
+          }
+        }
       },
       orderBy: {
         dateStart: "desc",
@@ -105,8 +109,20 @@ export class SessionService {
     }
   }
 
-  async findLastSessionByExercise(exerciseUuid: string) {
+  async findLastSessionByExercise(exerciseUuid: string, excludedSessionGroupUuid?: string) {
     const client = this.clientService.getClient();
+    const where: Prisma.ExerciseOnTrainingSessionsTempWhereInput = {
+      exercise: {
+        uuid: exerciseUuid
+      },
+    }
+    if (excludedSessionGroupUuid) {
+      where.trainingSessionGroupTemp = {
+        isNot: {
+          uuid: excludedSessionGroupUuid
+        }
+      } 
+    }
     const result = await client.exerciseOnTrainingSessionsTemp.findFirst({
       select: {
         exercise: {
@@ -119,11 +135,7 @@ export class SessionService {
         weight: true,
         dateRegistered: true
       },
-      where: {
-        exercise: {
-          uuid: exerciseUuid
-        }
-      },
+      where,
       orderBy: {
         dateRegistered: 'desc'
       },
@@ -202,7 +214,7 @@ export class SessionService {
         select: {
           uuid: true,
         },
-        data: new CreateSessionGroupDto({ trainingSessions: [] }).getDto()
+        data: new CreateSessionGroupDto({ trainingSetUuids: [] }).getDto()
       })
 
       const dbSeries = group.map(series => {

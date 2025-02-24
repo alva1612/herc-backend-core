@@ -38,20 +38,23 @@ export class CreateSessionTempDto {
 }
 
 export class CreateSessionGroupDto {
-  trainingSets: { trainingSetsUuid: string }[];
-  dateStart: Date
+  trainingSets: { repetitions: number, weight: string, dateRegistered: string, exerciseUuid: string }[];
+  trainingSetUuids: { uuid: string }[]
+  dateStart: string
 
-  constructor(createSessionGroupDto) {
-    this.trainingSets = createSessionGroupDto.trainingSets;
-    this.dateStart = new Date()
+  constructor(dto: Partial<CreateSessionGroupDto>) {
+    this.trainingSets = dto.trainingSets;
+    this.trainingSetUuids = dto.trainingSetUuids
+    this.dateStart = dto.dateStart
   }
 
   getDto(): Prisma.TrainingSessionGroupTempCreateInput {
     return {
-        trainingSets: {
-          connect: this.trainingSets.map(v => ({uuid: v.trainingSetsUuid}))
-        },
-        dateStart: this.dateStart
+      trainingSets: {
+        connect: this.trainingSetUuids,
+        create: this.trainingSets.map(v => ({ ...v, exercise: { connect: { uuid: v.exerciseUuid } } }))
+      },
+      dateStart: this.dateStart
     }
   }
 }

@@ -15,7 +15,7 @@ export class SessionController {
   }
 
   @Post()
-  create(@Body() createSessionDto: typeof CreateSessionGroupDto) {
+  create(@Body() createSessionDto: Partial<CreateSessionGroupDto>) {
     const dto = new CreateSessionGroupDto(createSessionDto);
     return this.sessionService.createSessionGroup(dto);
   }
@@ -31,8 +31,8 @@ export class SessionController {
   }
 
   @Get('last/:exerciseUuid')
-  async findLastTempSessionByExercise(@Param('exerciseUuid') exerciseUuid) {
-    const res = await this.sessionService.findLastSessionByExercise(exerciseUuid);
+  async findLastTempSessionByExercise(@Param('exerciseUuid') exerciseUuid, @Query() queryParams) {
+    const res = await this.sessionService.findLastSessionByExercise(exerciseUuid, queryParams.excludedSessionGroupUuid);
     if (!res) {
       throw new NotFoundException();
     }
