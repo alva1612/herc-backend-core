@@ -1,34 +1,47 @@
 import { Controller, Post, Body, Get, Query, Param, NotFoundException } from '@nestjs/common';
 import { SessionService } from './session.service';
-import { CreateSessionTempDto } from './dto/create-session.dto';
-import { ListSessionDto } from './dto/list-session.dto';
+import { CreateSessionGroupDto, CreateSessionTempDto } from './dto/create-session.dto';
+import { ListSessionDto, ListSetDto } from './dto/list-session.dto';
 
 @Controller('session')
 export class SessionController {
-  constructor(private readonly sessionService: SessionService) { }
+  constructor(private readonly sessionService: SessionService) {}
 
-  @Post()
+  @Post('set')
   createTemp(@Body() createSessionDto: typeof CreateSessionTempDto) {
-    const dto = new CreateSessionTempDto(createSessionDto)
+    console.log({createSessionDto})
+    const dto = new CreateSessionTempDto(createSessionDto);
     return this.sessionService.create(dto);
   }
 
-  // @Post('unavailable')
-  // create(@Body() createSessionDto: CreateSessionDto) {
-  //   return this.sessionService.create(createSessionDto);
-  // }
+  @Post()
+  create(@Body() createSessionDto: Partial<CreateSessionGroupDto>) {
+    const dto = new CreateSessionGroupDto(createSessionDto);
+    return this.sessionService.createSessionGroup(dto);
+  }
 
   @Get()
-  findAll(@Query() queryParams) {
+  find(@Query() queryParams) {
     return this.sessionService.findAll(new ListSessionDto(queryParams));
   }
 
+  @Get('set')
+  findSets(@Query() queryParams) {
+    return this.sessionService.findAllSets(new ListSetDto(queryParams));
+  }
+
   @Get('last/:exerciseUuid')
-  async findLastTempSessionByExercise(@Param('exerciseUuid') exerciseUuid) {
-    const res = await this.sessionService.findLastSessionByExercise(exerciseUuid);
+  async findLastTempSessionByExercise(@Param('exerciseUuid') exerciseUuid, @Query() queryParams) {
+    const res = await this.sessionService.findLastSessionByExercise(exerciseUuid, queryParams.excludedSessionGroupUuid);
     if (!res) {
       throw new NotFoundException();
     }
+    return res;
+  }
+
+  @Post('migrate/csv')
+  async migrateFromCSV() {
+    await this.sessionService.migrateFromCSV()
   }
 
   // @Get(':id')
