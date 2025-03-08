@@ -5,7 +5,7 @@ function getEitherUniqueField<T extends { uuid?: string, id: number, [x: string]
             uuid: entity.uuid
         }
     }
-    return {
+    if (entity.id) return {
         id: entity.id
     }
 }

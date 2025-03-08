@@ -11,7 +11,7 @@ export class SessionController {
   createTemp(@Body() createSessionDto: typeof CreateSessionTempDto) {
     console.log({createSessionDto})
     const dto = new CreateSessionTempDto(createSessionDto);
-    return this.sessionService.create(dto);
+    return this.sessionService.createSetSmart(dto);
   }
 
   @Post()
@@ -31,7 +31,7 @@ export class SessionController {
   }
 
   @Get('last/:exerciseUuid')
-  async findLastTempSessionByExercise(@Param('exerciseUuid') exerciseUuid, @Query() queryParams) {
+  async findLastSessionByExercise(@Param('exerciseUuid') exerciseUuid, @Query() queryParams) {
     const res = await this.sessionService.findLastSessionByExercise(exerciseUuid, queryParams.excludedSessionGroupUuid);
     if (!res) {
       throw new NotFoundException();

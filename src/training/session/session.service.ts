@@ -4,6 +4,7 @@ import { PrismaService } from 'src/common/prisma.service';
 import { Prisma } from '@prisma/client';
 import { ListSetDto, ListSessionsCustomFilters, ListSessionDto } from './dto/list-session.dto';
 import { getFile } from 'src/migrations/v1ToV2';
+import { join } from 'node:path';
 
 const SECOND_VALUE = 1000
 const MINUTE_VALUE = SECOND_VALUE * 60
@@ -14,14 +15,35 @@ export class SessionService {
 
   constructor(private clientService: PrismaService) { }
 
-  async create(createSessionDto: CreateSessionTempDto) {
+  async createSetSmart(createSessionDto: CreateSessionTempDto) {
+    if (createSessionDto.sessionGroup) {
+      return this.createSet(createSessionDto);
+    }
     const client = this.clientService.getClient();
-
-    const result = await client.exerciseOnTrainingSessionsTemp.create({
-      data: createSessionDto.getDto()
-    });
-
-    return result;
+    const dateGT = new Date(new Date().valueOf() - 15 * MINUTE_VALUE);
+    console.log({ dateGT });
+    const closeSessionUuid = await client.exerciseOnTrainingSessionsTemp.findFirst({
+      select: {
+        trainingSessionGroupTemp: {
+          select: {
+            uuid: true
+          }
+        }
+      },
+      where: {
+        dateRegistered: {
+          gt: dateGT
+        }
+      }
+    })
+    console.log({ closeSessionUuid })
+    if (closeSessionUuid?.trainingSessionGroupTemp.uuid) {
+      createSessionDto.setSessionGroup({ uuid: closeSessionUuid.trainingSessionGroupTemp.uuid })
+    } else {
+      const sessionGroup = await this.createSessionGroup(new CreateSessionGroupDto({ trainingSetUuids: [], dateStart: new Date().toISOString() }));
+      createSessionDto.setSessionGroup({ uuid: sessionGroup.uuid })
+    }
+    return this.createSet(createSessionDto);
   }
 
   async createSessionGroup(createSessionGroupDto: CreateSessionGroupDto) {
@@ -121,23 +143,35 @@ export class SessionService {
         isNot: {
           uuid: excludedSessionGroupUuid
         }
-      } 
+      }
     }
-    const result = await client.exerciseOnTrainingSessionsTemp.findFirst({
+    const result = await client.trainingSessionGroupTemp.findFirst({
       select: {
-        exercise: {
-          select: {
-            name: true
+        dateEnd: true,
+        dateStart: true,
+        trainingSets: {
+          include: {
+            exercise: {
+              select: {
+                name: true
+              }
+            },
           }
-        },
-        uuid: true,
-        repetitions: true,
-        weight: true,
-        dateRegistered: true
+        }
       },
-      where,
+      where: {
+        trainingSets: {
+          some: {
+            exercise: {
+              uuid: {
+                equals: exerciseUuid
+              }
+            }
+          }
+        }
+      },
       orderBy: {
-        dateRegistered: 'desc'
+        dateEnd: 'desc'
       },
       take: 1
     })
@@ -188,7 +222,13 @@ export class SessionService {
   }
 
   async migrateFromCSV() {
-    const data = await getFile() as { dateRegistered: string, exerciseId: string }[];
+    const client = this.clientService.getClient();
+    const name = 'v1Tov2';
+    const pathToFolder = join(__dirname, '..', '..', '..', 'migrations', 'csv');
+    const exerciseData = await getFile(join(pathToFolder, `${name}_exercises.csv`)) as { id: number, uuid: string, name: string, description: string }[];
+    await client.exercise.createMany({ data: exerciseData.map((e) => ({ id: Number(e.id), uuid: e.uuid, name: e.name, description: e.description })) });
+
+    const data = await getFile(join(pathToFolder, `${name}.csv`)) as { dateRegistered: string, exerciseId: string }[];
 
     const sessionGroups = data.reduce((acc, curr) => {
       const lastSession = acc.at(-1)
@@ -204,8 +244,8 @@ export class SessionService {
       newAcc[acc.length - 1] = newLastSession
       return newAcc
     }, [])
-    const client = this.clientService.getClient()
-    await client.exerciseOnTrainingSessionsTemp.deleteMany({where: {}})
+
+    await client.exerciseOnTrainingSessionsTemp.deleteMany({ where: {} })
     await client.trainingSessionGroupTemp.deleteMany({
       where: {},
     });
@@ -214,27 +254,35 @@ export class SessionService {
         select: {
           uuid: true,
         },
-        data: new CreateSessionGroupDto({ trainingSetUuids: [] }).getDto()
+        data: new CreateSessionGroupDto({ trainingSets: [], dateStart: new Date().toISOString() }).getDto()
       })
 
       const dbSeries = group.map(series => {
-        return client.exerciseOnTrainingSessionsTemp.create({
-          data: new CreateSessionTempDto({
-            repetitions: Number(series.repetitions),
-            weight: series.weight,
-            exercise: {
-              id: Number(series.exerciseId)
-            },
-            sessionGroup: {
-              uuid: dbGroup.uuid
-            }
-          }).getDto()
-        })
+        const dto = new CreateSessionTempDto({
+          repetitions: Number(series.repetitions),
+          weight: series.weight,
+          exercise: {
+            id: Number(series.exerciseId)
+          },
+          sessionGroup: {
+            uuid: dbGroup.uuid
+          }
+        });
+        return this.createSet(dto);
       })
       const createdSeries = await Promise.all(dbSeries);
       return createdSeries;
     })
     const result = await Promise.all(promises)
+    return result;
+  }
+
+  private async createSet(createSetDto: CreateSessionTempDto) {
+    const client = this.clientService.getClient();
+    const result = await client.exerciseOnTrainingSessionsTemp.create({
+      data: createSetDto.getDto()
+    });
+
     return result;
   }
 }
