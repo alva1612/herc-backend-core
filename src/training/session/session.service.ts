@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { ListSetDto, ListSessionsCustomFilters, ListSessionDto } from './dto/list-session.dto';
 import { getFile } from 'src/migrations/v1ToV2';
 import { join } from 'node:path';
+import { Decimal } from '@prisma/client/runtime/library';
 
 const SECOND_VALUE = 1000
 const MINUTE_VALUE = SECOND_VALUE * 60
@@ -21,7 +22,6 @@ export class SessionService {
     }
     const client = this.clientService.getClient();
     const dateGT = new Date(new Date().valueOf() - 15 * MINUTE_VALUE);
-    console.log({ dateGT });
     const closeSessionUuid = await client.exerciseOnTrainingSessionsTemp.findFirst({
       select: {
         trainingSessionGroupTemp: {
@@ -36,7 +36,6 @@ export class SessionService {
         }
       }
     })
-    console.log({ closeSessionUuid })
     if (closeSessionUuid?.trainingSessionGroupTemp.uuid) {
       createSessionDto.setSessionGroup({ uuid: closeSessionUuid.trainingSessionGroupTemp.uuid })
     } else {
@@ -145,19 +144,9 @@ export class SessionService {
         }
       }
     }
-    const result = await client.trainingSessionGroupTemp.findFirst({
+    const resultSessionGroup = await client.trainingSessionGroupTemp.findFirst({
       select: {
-        dateEnd: true,
-        dateStart: true,
-        trainingSets: {
-          include: {
-            exercise: {
-              select: {
-                name: true
-              }
-            },
-          }
-        }
+        uuid: true,
       },
       where: {
         trainingSets: {
@@ -176,11 +165,39 @@ export class SessionService {
       take: 1
     })
 
+    if (!resultSessionGroup) {
+      return null;
+    }
+
+    const resultSession = await client.exerciseOnTrainingSessionsTemp.findMany({
+      where: {
+        trainingSessionGroupTemp: {
+          uuid: {
+            equals: resultSessionGroup.uuid
+          }
+        },
+        exercise: {
+          uuid: {
+            equals: exerciseUuid
+          }
+        }
+      }
+    })
+
+    console.log({ resultSession, resultSessionGroup })
+
+    const estimatedOverload = resultSession.reduce<{ maxWeight: Decimal, maxReps: number }>((acc, curr) => {
+      const maxWeight = curr.weight.greaterThan(acc.maxWeight) ? curr.weight : acc.maxWeight;
+      const maxReps = curr.repetitions > acc.maxReps ? curr.repetitions : acc.maxReps;
+      return {
+        maxWeight,
+        maxReps,
+      }
+    }, { maxWeight: new Decimal(0), maxReps: 0 });
+
     return {
-      data: result
+      data: estimatedOverload
     };
-
-
   }
 
   parseCustomFilters(baseFilters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'], customFilter: ListSessionsCustomFilters): Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] {

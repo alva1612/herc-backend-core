@@ -9,7 +9,6 @@ export class SessionController {
 
   @Post('set')
   createTemp(@Body() createSessionDto: typeof CreateSessionTempDto) {
-    console.log({createSessionDto})
     const dto = new CreateSessionTempDto(createSessionDto);
     return this.sessionService.createSetSmart(dto);
   }
