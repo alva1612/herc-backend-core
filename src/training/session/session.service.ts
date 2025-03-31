@@ -145,8 +145,6 @@ export class SessionService {
     return {
       data: result
     };
-
-
   }
 
   parseCustomFilters(baseFilters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'], customFilter: ListSessionsCustomFilters): Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] {
