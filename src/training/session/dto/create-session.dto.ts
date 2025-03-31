@@ -9,7 +9,7 @@ export class CreateSessionTempDto {
     id: number
     uuid: string
   }
-  sessionGroup: {
+  sessionGroup?: {
     id: number
     uuid: string
   }
@@ -22,6 +22,10 @@ export class CreateSessionTempDto {
     this.dateRegistered = new Date()
   }
 
+  setSessionGroup(sessionGroup) {
+    this.sessionGroup = sessionGroup;
+  }
+
   getDto(): Prisma.ExerciseOnTrainingSessionsTempCreateArgs['data'] {
     return {
       repetitions: this.repetitions,
@@ -30,9 +34,9 @@ export class CreateSessionTempDto {
       exercise: {
         connect: PrismaUtils.getEitherUniqueField(this.exercise)
       },
-      trainingSessionGroupTemp: {
+      trainingSessionGroupTemp: this.sessionGroup ? {
         connect: PrismaUtils.getEitherUniqueField(this.sessionGroup)
-      },
+      }: {},
     };
   }
 }
@@ -52,7 +56,7 @@ export class CreateSessionGroupDto {
     return {
       trainingSets: {
         connect: this.trainingSetUuids,
-        create: this.trainingSets.map(v => ({ ...v, exercise: { connect: { uuid: v.exerciseUuid } } }))
+        create: this.trainingSets?.map(v => ({ ...v, exercise: { connect: { uuid: v.exerciseUuid } } })) ?? []
       },
       dateStart: this.dateStart
     }
