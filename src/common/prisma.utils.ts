@@ -9,6 +9,18 @@ function getEitherUniqueField<T extends { uuid?: string, id: number, [x: string]
     }
 }
 
+function getEitherUniqueFieldFromValue(identifer: string | number) {
+    if (typeof identifer === 'string') {
+        return {
+            uuid: identifer
+        }
+    }
+    return {
+        id: identifer
+    }
+}
+
 export const PrismaUtils = {
-    getEitherUniqueField
+    getEitherUniqueField,
+    getEitherUniqueFieldFromValue
 };

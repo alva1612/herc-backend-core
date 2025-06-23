@@ -245,7 +245,7 @@ export class SessionService {
     const exerciseData = await getFile(join(pathToFolder, `${name}_exercises.csv`)) as { id: number, uuid: string, name: string, description: string }[];
     await client.exercise.createMany({ data: exerciseData.map((e) => ({ id: Number(e.id), uuid: e.uuid, name: e.name, description: e.description })) });
 
-    const data = await getFile(join(pathToFolder, `${name}.csv`)) as { dateRegistered: string, exerciseId: string }[];
+    const data = await getFile(join(pathToFolder, `${name}_sessionGroups.csv`)) as { dateRegistered: string, exerciseId: string }[];
 
     const sessionGroups = data.reduce((acc, curr) => {
       const lastSession = acc.at(-1)

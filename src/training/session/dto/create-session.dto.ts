@@ -49,7 +49,7 @@ export class CreateSessionGroupDto {
   constructor(dto: Partial<CreateSessionGroupDto>) {
     this.trainingSets = dto.trainingSets;
     this.trainingSetUuids = dto.trainingSetUuids
-    this.dateStart = dto.dateStart
+    this.dateStart = dto.dateStart ?? new Date().toISOString();
   }
 
   getDto(): Prisma.TrainingSessionGroupTempCreateInput {

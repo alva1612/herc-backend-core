@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Patch, Param } from '@nestjs/common';
 import { ExerciseService } from '../exercise.service';
 import { CreateExerciseDto } from '../dto/create-exercise.dto';
+import { UpdateExerciseDto } from '../dto/update-exercise.dto';
 
 @Controller('exercise')
 export class ExerciseController {
@@ -9,6 +10,11 @@ export class ExerciseController {
   @Post()
   create(@Body() createExerciseDto: CreateExerciseDto) {
     return this.exerciseService.create(createExerciseDto);
+  }
+
+  @Patch(':identifier')
+  patch(@Body() updateDto: UpdateExerciseDto, @Param('identifier') identifier) {
+    return this.exerciseService.patch(identifier, updateDto)
   }
 
   @Get()
