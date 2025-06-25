@@ -23,10 +23,9 @@ model Exercise {
   exerciseOnTrainingSessions     ExerciseOnTrainingSessions[]
   exerciseOnTrainingSessionsTemp ExerciseOnTrainingSessionsTemp[]
 
-  
+  muscleSectionExercises MuscleSectionExercises[]
 
   @@map("Exercises")
-  MuscleSectionExercises MuscleSectionExercises[]
 }
 
 model MuscleSections {
@@ -36,7 +35,7 @@ model MuscleSections {
   name  String @db.VarChar(40)
   description String?
 
-  MuscleSectionExercises MuscleSectionExercises[]
+  muscleSectionExercises MuscleSectionExercises[]
 }
 
 model MuscleSectionExercises {

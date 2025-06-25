@@ -14,9 +14,36 @@ export class ExerciseService {
 
   constructor(private readonly clientService: PrismaService) { }
 
-  create(createExerciseDto: CreateExerciseDto) {
+  async create(createExerciseDto: CreateExerciseDto) {
     const client = this.clientService.getClient();
-    return client.exercise.create({ data: createExerciseDto })
+
+    const orClause = createExerciseDto.muscleExercises.map(me => PrismaUtils.getEitherUniqueFieldFromValue(me.muscleSectionId))
+    const muscleIds = createExerciseDto.muscleExercises?.length > 0 ? await client.muscleSections.findMany({
+      select: {
+        id: true,
+        uuid: true
+      },
+      where: {
+        OR: orClause
+      }
+    }) : null;
+
+    const muscleSectionExercisesObj = createExerciseDto.muscleExercises?.length > 0 ? {
+      createMany: {
+        data: createExerciseDto.muscleExercises.map(me => {
+          return {
+            description: me.description,
+            effort: me.effort,
+            muscleSectionId: muscleIds.find(e => me.muscleSectionId === e.id || me.muscleSectionId === e.uuid).id
+          }
+        })
+      }
+    } : {}
+    delete createExerciseDto.muscleExercises
+    return client.exercise.create({ data: {
+      ...createExerciseDto,
+      muscleSectionExercises: muscleSectionExercisesObj
+    } })
   }
 
   patch(identifier: string | number, updateExerciseDto: UpdateExerciseDto) {
