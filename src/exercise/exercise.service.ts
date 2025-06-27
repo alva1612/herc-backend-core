@@ -95,7 +95,7 @@ export class ExerciseService {
     })
   }
 
-  async findAll(where: FindManyArgs['filters'], customFilters: { muscleSection: string[] }) {
+  async findAll(where: FindManyArgs['filters'], customFilters: { muscleSection: string[], name: string }) {
 
     const customFilter = this.handleFilters(customFilters);
     const whereObj = customFilter ?? where;
@@ -119,17 +119,23 @@ export class ExerciseService {
   }
 
   private handleFilters(customFilters): FindManyArgs['filters'] {
+    const filterObj: ReturnType<typeof this.handleFilters> = {}
     if (customFilters.muscleSection)
-      return {
-        muscleSectionExercises: {
-          some: {
-            muscleSection: {
-              uuid: {
-                in: customFilters.muscleSection
-              }
+      filterObj.muscleSectionExercises = {
+        some: {
+          muscleSection: {
+            uuid: {
+              in: customFilters.muscleSection
             }
           }
         }
       }
+    if (customFilters.name) {
+      filterObj.name = {
+        startsWith: `%${customFilters.name}%`,
+        mode: 'insensitive'
+      }
+    }
+    return filterObj;
   }
 }
