@@ -3,6 +3,7 @@ import { CreateMuscleDto } from './dto/create-muscle.dto';
 import { UpdateMuscleDto } from './dto/update-muscle.dto';
 import { PrismaService } from 'src/common/prisma.service';
 import { PrismaUtils } from 'src/common/prisma.utils';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MuscleService {
@@ -42,24 +43,14 @@ export class MuscleService {
     })
   }
 
-  findAll() {
+  findAll({ expand }) {
     const client = this.clientService.getClient();
     return client.muscleSections.findMany({
       select: {
         uuid: true,
         name: true,
         description: true,
-        muscleSectionExercises: {
-          select: {
-            exercise: {
-              omit: {
-                id: true
-              }
-            },
-            effort: true,
-            description: true
-          }
-        }
+        ...this.handleExpandParams(expand)
       }
     })
   }
@@ -74,5 +65,25 @@ export class MuscleService {
 
   remove(id: number) {
     return `This action removes a #${id} muscle`;
+  }
+
+  private handleExpandParams(expand: string): Prisma.MuscleSectionsFindManyArgs['select'] {
+    const selectObj: ReturnType<typeof this.handleExpandParams> = {}
+    if (!expand)
+      return selectObj;
+    if (expand.includes('muscleSectionExercises')) {
+      selectObj.muscleSectionExercises = {
+        select: {
+          exercise: {
+            omit: {
+              id: true
+            }
+          },
+          effort: true,
+          description: true
+        }
+      }
+    }
+    return selectObj;
   }
 }
