@@ -18,7 +18,7 @@ export class ExerciseController {
   }
 
   @Get()
-  findAll(@Query('filters') filters = "{}") {
-    return this.exerciseService.findAll(JSON.parse(filters));
+  findAll(@Query('filters') filters = "{}", @Query('customFilters') customFilters = "{}") {
+    return this.exerciseService.findAll(JSON.parse(filters), JSON.parse(customFilters));
   }
 }

@@ -88,28 +88,48 @@ export class ExerciseService {
         }
       }
     }
-    return client.exercise.update({ data: updateMuscleSectionExercises, where: PrismaUtils.getEitherUniqueFieldFromValue(identifier), include: {
-      muscleSectionExercises: hasMuscleSections
-    } })
+    return client.exercise.update({
+      data: updateMuscleSectionExercises, where: PrismaUtils.getEitherUniqueFieldFromValue(identifier), include: {
+        muscleSectionExercises: hasMuscleSections
+      }
+    })
   }
 
-  async findAll(where: FindManyArgs['filters']) {
+  async findAll(where: FindManyArgs['filters'], customFilters: { muscleSection: string[] }) {
+
+    const customFilter = this.handleFilters(customFilters);
+    const whereObj = customFilter ?? where;
     const data = await this.clientService.getClient().exercise.findMany({
       select: {
         uuid: true,
         name: true,
         description: true
       },
-      where,
+      where: whereObj,
     });
 
     const total = await this.clientService.getClient().exercise.count({
-      where
+      where: whereObj
     });
 
     return {
       data,
       total
     }
+  }
+
+  private handleFilters(customFilters): FindManyArgs['filters'] {
+    if (customFilters.muscleSection)
+      return {
+        muscleSectionExercises: {
+          some: {
+            muscleSection: {
+              uuid: {
+                in: customFilters.muscleSection
+              }
+            }
+          }
+        }
+      }
   }
 }
