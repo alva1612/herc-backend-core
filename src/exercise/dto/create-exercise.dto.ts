@@ -5,5 +5,5 @@ export class CreateExerciseDto {
     description?: string
     trainingPlanId?: string | number
 
-    muscleExercises: CreateMuscleExerciseDto[]
+    muscleSectionExercises: CreateMuscleExerciseDto[]
 }

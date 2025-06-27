@@ -17,38 +17,80 @@ export class ExerciseService {
   async create(createExerciseDto: CreateExerciseDto) {
     const client = this.clientService.getClient();
 
-    const orClause = createExerciseDto.muscleExercises.map(me => PrismaUtils.getEitherUniqueFieldFromValue(me.muscleSectionId))
-    const muscleIds = createExerciseDto.muscleExercises?.length > 0 ? await client.muscleSections.findMany({
-      select: {
-        id: true,
-        uuid: true
-      },
-      where: {
-        OR: orClause
-      }
-    }) : null;
+    const hasMuscleSections = createExerciseDto.muscleSectionExercises?.length > 0
 
-    const muscleSectionExercisesObj = createExerciseDto.muscleExercises?.length > 0 ? {
-      createMany: {
-        data: createExerciseDto.muscleExercises.map(me => {
-          return {
-            description: me.description,
-            effort: me.effort,
-            muscleSectionId: muscleIds.find(e => me.muscleSectionId === e.id || me.muscleSectionId === e.uuid).id
-          }
-        })
+    const createExerciseData: Prisma.XOR<Prisma.ExerciseCreateInput, Prisma.ExerciseUncheckedCreateInput> = {
+      name: createExerciseDto.name,
+      description: createExerciseDto.description,
+    }
+    if (hasMuscleSections) {
+      const orClause = createExerciseDto.muscleSectionExercises.map(me => PrismaUtils.getEitherUniqueFieldFromValue(me.muscleSectionId));
+      const muscleIds = await client.muscleSections.findMany({
+        select: {
+          id: true,
+          uuid: true
+        },
+        where: {
+          OR: orClause
+        }
+      });
+      createExerciseData.muscleSectionExercises = {
+        createMany: {
+          data: createExerciseDto.muscleSectionExercises.map(me => {
+            return {
+              description: me.description,
+              effort: me.effort,
+              muscleSectionId: muscleIds.find(e => me.muscleSectionId === e.id || me.muscleSectionId === e.uuid).id
+            }
+          })
+        }
       }
-    } : {}
-    delete createExerciseDto.muscleExercises
-    return client.exercise.create({ data: {
-      ...createExerciseDto,
-      muscleSectionExercises: muscleSectionExercisesObj
-    } })
+    }
+
+    return client.exercise.create({ data: createExerciseData })
   }
 
-  patch(identifier: string | number, updateExerciseDto: UpdateExerciseDto) {
+  async update(identifier: string | number, updateExerciseDto: UpdateExerciseDto) {
     const client = this.clientService.getClient();
-    return client.exercise.update({ data: updateExerciseDto, where: PrismaUtils.getEitherUniqueFieldFromValue(identifier)})
+
+    await client.muscleSectionExercises.deleteMany({
+      where: {
+        exercise: PrismaUtils.getEitherUniqueFieldFromValue(identifier)
+      }
+    })
+
+    const updateMuscleSectionExercises: Prisma.XOR<Prisma.ExerciseUpdateInput, Prisma.ExerciseUncheckedUpdateInput> = {
+      description: updateExerciseDto.description,
+      name: updateExerciseDto.name
+    }
+
+    const hasMuscleSections = updateExerciseDto?.muscleSectionExercises.length > 0
+    if (hasMuscleSections) {
+      const orClause = updateExerciseDto.muscleSectionExercises.map(me => PrismaUtils.getEitherUniqueFieldFromValue(me.muscleSectionId));
+      const muscleIds = await client.muscleSections.findMany({
+        select: {
+          id: true,
+          uuid: true
+        },
+        where: {
+          OR: orClause
+        }
+      });
+      updateMuscleSectionExercises.muscleSectionExercises = {
+        createMany: {
+          data: updateExerciseDto.muscleSectionExercises.map(me => {
+            return {
+              description: me.description,
+              effort: me.effort,
+              muscleSectionId: muscleIds.find(e => me.muscleSectionId === e.id || me.muscleSectionId === e.uuid).id
+            }
+          })
+        }
+      }
+    }
+    return client.exercise.update({ data: updateMuscleSectionExercises, where: PrismaUtils.getEitherUniqueFieldFromValue(identifier), include: {
+      muscleSectionExercises: hasMuscleSections
+    } })
   }
 
   async findAll(where: FindManyArgs['filters']) {
