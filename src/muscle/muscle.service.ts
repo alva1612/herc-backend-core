@@ -43,9 +43,9 @@ export class MuscleService {
     })
   }
 
-  findAll({ expand }) {
+  async findAll({ expand }) {
     const client = this.clientService.getClient();
-    return client.muscleSections.findMany({
+    const data = await client.muscleSections.findMany({
       select: {
         uuid: true,
         name: true,
@@ -53,6 +53,9 @@ export class MuscleService {
         ...this.handleExpandParams(expand)
       }
     })
+    return {
+      data,
+    }
   }
 
   findOne(id: number) {

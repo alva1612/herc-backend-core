@@ -5,7 +5,7 @@ import { UpdateExerciseDto } from '../dto/update-exercise.dto';
 
 @Controller('exercise')
 export class ExerciseController {
-  constructor(private readonly exerciseService: ExerciseService) {}
+  constructor(private readonly exerciseService: ExerciseService) { }
 
   @Post()
   create(@Body() createExerciseDto: CreateExerciseDto) {
@@ -18,7 +18,7 @@ export class ExerciseController {
   }
 
   @Get()
-  findAll(@Query('filters') filters = "{}", @Query('customFilters') customFilters = "{}") {
-    return this.exerciseService.findAll(JSON.parse(filters), JSON.parse(customFilters));
+  findAll(@Query('expand') expand, @Query('filters') filters = "{}", @Query('customFilters') customFilters = "{}") {
+    return this.exerciseService.findAll({ expand, customFilters: JSON.parse(customFilters), where: JSON.parse(filters), });
   }
 }

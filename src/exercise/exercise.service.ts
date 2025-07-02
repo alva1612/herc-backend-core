@@ -8,6 +8,7 @@ import { PrismaUtils } from 'src/common/prisma.utils';
 type FindManyArgs = {
   filters: Prisma.ExerciseFindManyArgs['where']
 }
+type CustomFilters = { muscleSection: string[], name: string }
 
 @Injectable()
 export class ExerciseService {
@@ -95,7 +96,7 @@ export class ExerciseService {
     })
   }
 
-  async findAll(where: FindManyArgs['filters'], customFilters: { muscleSection: string[], name: string }) {
+  async findAll({ where, customFilters, expand }: { where: FindManyArgs['filters'], customFilters: CustomFilters, expand }) {
 
     const customFilter = this.handleFilters(customFilters);
     const whereObj = customFilter ?? where;
@@ -103,7 +104,8 @@ export class ExerciseService {
       select: {
         uuid: true,
         name: true,
-        description: true
+        description: true,
+        ...this.handleExpandParams(expand)
       },
       where: whereObj,
     });
@@ -137,5 +139,25 @@ export class ExerciseService {
       }
     }
     return filterObj;
+  }
+
+  private handleExpandParams(expand: string): Prisma.ExerciseFindManyArgs['select'] {
+    const selectObj: ReturnType<typeof this.handleExpandParams> = {}
+    if (!expand)
+      return selectObj;
+    if (expand.includes('muscleSectionExercises')) {
+      selectObj.muscleSectionExercises = {
+        select: {
+          muscleSection: {
+            omit: {
+              id: true
+            }
+          },
+          effort: true,
+          description: true
+        }
+      }
+    }
+    return selectObj;
   }
 }
