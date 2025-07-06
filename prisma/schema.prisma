@@ -17,11 +17,10 @@ model Exercise {
   id   Int     @id @default(autoincrement())
   uuid String? @unique @default(uuid()) @db.Uuid
 
-  name                           String                           @db.VarChar(40)
-  description                    String?                          @db.VarChar()
-  exerciseOnTrainingPlans        ExerciseOnTrainingPlans[]
-  exerciseOnTrainingSessions     ExerciseOnTrainingSessions[]
-  exerciseOnTrainingSessionsTemp ExerciseOnTrainingSessionsTemp[]
+  name                       String                       @db.VarChar(40)
+  description                String?                      @db.VarChar()
+  exerciseOnTrainingPlans    ExerciseOnTrainingPlans[]
+  exerciseOnTrainingSessions ExerciseOnTrainingSessions[]
 
   muscleSectionExercises MuscleSectionExercises[]
 
@@ -29,10 +28,10 @@ model Exercise {
 }
 
 model MuscleSections {
-  id Int @id @default(autoincrement())
+  id   Int     @id @default(autoincrement())
   uuid String? @unique @default(uuid()) @db.Uuid
 
-  name  String @db.VarChar(40)
+  name        String  @db.VarChar(40)
   description String?
 
   muscleSectionExercises MuscleSectionExercises[]
@@ -40,11 +39,11 @@ model MuscleSections {
 
 model MuscleSectionExercises {
   muscleSectionId Int
-  muscleSection MuscleSections @relation(fields: [muscleSectionId], references: [id])
-  exerciseId Int
-  exercise Exercise @relation(fields: [exerciseId], references: [id])
+  muscleSection   MuscleSections @relation(fields: [muscleSectionId], references: [id])
+  exerciseId      Int
+  exercise        Exercise       @relation(fields: [exerciseId], references: [id])
 
-  effort  Int
+  effort      Int
   description String @db.VarChar()
 
   @@id([exerciseId, muscleSectionId])
@@ -61,19 +60,6 @@ model TrainingPlan {
   trainingSession TrainingSession[]
 
   @@map("TrainingPlans")
-}
-
-model ExerciseOnTrainingSessions {
-  id   Int     @id @default(autoincrement())
-  uuid String? @unique @default(uuid()) @db.Uuid
-
-  exercise   Exercise @relation(fields: [exerciseId], references: [id])
-  exerciseId Int
-
-  traningSessionId Int
-  trainingSession  TrainingSession @relation(fields: [traningSessionId], references: [id])
-
-  @@map("ExerciseOnTrainingSessions")
 }
 
 model ExerciseOnTrainingPlans {
@@ -98,8 +84,8 @@ model TrainingSession {
   basePlanId Int
   basePlan   TrainingPlan @relation(fields: [basePlanId], references: [id])
 
-  dateStart DateTime @default(now()) @db.Timestamptz()
-  dateEnd DateTime?
+  dateStart DateTime  @default(now()) @db.Timestamptz()
+  dateEnd   DateTime?
 
   exerciseOnTrainingSessions ExerciseOnTrainingSessions[]
 
@@ -115,7 +101,7 @@ model User {
   @@map("Users")
 }
 
-model ExerciseOnTrainingSessionsTemp {
+model ExerciseOnTrainingSessions {
   id   Int    @id @default(autoincrement())
   uuid String @unique @default(uuid()) @db.Uuid
 
@@ -128,19 +114,21 @@ model ExerciseOnTrainingSessionsTemp {
   dateRegistered DateTime
 
   trainingSessionGroupId   Int
-  trainingSessionGroupTemp TrainingSessionGroupTemp @relation(fields: [trainingSessionGroupId], references: [id])
+  trainingSessionGroup TrainingSessionGroup @relation(fields: [trainingSessionGroupId], references: [id])
 
-  @@map("ExerciseOnTrainingPlansTemp")
+  trainingSession TrainingSession[]
+
+  @@map("ExerciseOnTrainingSessions")
 }
 
-model TrainingSessionGroupTemp {
+model TrainingSessionGroup {
   id   Int    @id @default(autoincrement())
   uuid String @unique @default(uuid()) @db.Uuid
 
-  trainingSets ExerciseOnTrainingSessionsTemp[]
+  trainingSets ExerciseOnTrainingSessions[]
 
   dateStart DateTime
-  dateEnd DateTime?
+  dateEnd   DateTime?
 
-  @@map("TrainingSessionGroupTemp")
+  @@map("trainingSessionGroup")
 }

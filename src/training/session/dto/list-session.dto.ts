@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client"
 
 export type ListSessionsCustomFilters = 'today'
 export class ListSetDto {
-    readonly filters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where']
+    readonly filters: Prisma.ExerciseOnTrainingSessionsFindManyArgs['where']
     readonly customFilters?: ListSessionsCustomFilters
 
     constructor({filters, customFilters}: {filters: string, customFilters?: ListSessionsCustomFilters}) {
@@ -12,7 +12,7 @@ export class ListSetDto {
 }
 
 export class ListSessionDto {
-    readonly filters: Prisma.TrainingSessionGroupTempFindManyArgs['where']
+    readonly filters: Prisma.TrainingSessionGroupFindManyArgs['where']
     readonly customFilters?: ListSessionsCustomFilters
 
     constructor({filters, customFilters}: {filters: string, customFilters?: ListSessionsCustomFilters}) {

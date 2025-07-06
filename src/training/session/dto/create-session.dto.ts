@@ -26,7 +26,7 @@ export class CreateSessionTempDto {
     this.sessionGroup = sessionGroup;
   }
 
-  getDto(): Prisma.ExerciseOnTrainingSessionsTempCreateArgs['data'] {
+  getDto(): Prisma.ExerciseOnTrainingSessionsCreateArgs['data'] {
     return {
       repetitions: this.repetitions,
       weight: this.weight,
@@ -34,7 +34,7 @@ export class CreateSessionTempDto {
       exercise: {
         connect: PrismaUtils.getEitherUniqueField(this.exercise)
       },
-      trainingSessionGroupTemp: this.sessionGroup ? {
+      trainingSessionGroup: this.sessionGroup ? {
         connect: PrismaUtils.getEitherUniqueField(this.sessionGroup)
       }: {},
     };
@@ -52,7 +52,7 @@ export class CreateSessionGroupDto {
     this.dateStart = dto.dateStart ?? new Date().toISOString();
   }
 
-  getDto(): Prisma.TrainingSessionGroupTempCreateInput {
+  getDto(): Prisma.TrainingSessionGroupCreateInput {
     return {
       trainingSets: {
         connect: this.trainingSetUuids,

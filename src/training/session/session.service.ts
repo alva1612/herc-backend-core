@@ -22,9 +22,9 @@ export class SessionService {
     }
     const client = this.clientService.getClient();
     const dateGT = new Date(new Date().valueOf() - 15 * MINUTE_VALUE);
-    const closeSessionUuid = await client.exerciseOnTrainingSessionsTemp.findFirst({
+    const closeSessionUuid = await client.exerciseOnTrainingSessions.findFirst({
       select: {
-        trainingSessionGroupTemp: {
+        trainingSessionGroup: {
           select: {
             uuid: true
           }
@@ -36,8 +36,8 @@ export class SessionService {
         }
       }
     })
-    if (closeSessionUuid?.trainingSessionGroupTemp.uuid) {
-      createSessionDto.setSessionGroup({ uuid: closeSessionUuid.trainingSessionGroupTemp.uuid })
+    if (closeSessionUuid?.trainingSessionGroup.uuid) {
+      createSessionDto.setSessionGroup({ uuid: closeSessionUuid.trainingSessionGroup.uuid })
     } else {
       const sessionGroup = await this.createSessionGroup(new CreateSessionGroupDto({ trainingSetUuids: [], dateStart: new Date().toISOString() }));
       createSessionDto.setSessionGroup({ uuid: sessionGroup.uuid })
@@ -47,7 +47,7 @@ export class SessionService {
 
   async createSessionGroup(createSessionGroupDto: CreateSessionGroupDto) {
     const client = this.clientService.getClient();
-    return client.trainingSessionGroupTemp.create({
+    return client.trainingSessionGroup.create({
       data: createSessionGroupDto.getDto()
     })
   }
@@ -56,7 +56,7 @@ export class SessionService {
     const client = this.clientService.getClient();
     const whereCondition = this.parseCustomFilters(filters, customFilters);
 
-    const data = await client.exerciseOnTrainingSessionsTemp.findMany({
+    const data = await client.exerciseOnTrainingSessions.findMany({
       select: {
         dateRegistered: true,
         uuid: true,
@@ -75,7 +75,7 @@ export class SessionService {
       },
       where: whereCondition
     })
-    const total = await client.exerciseOnTrainingSessionsTemp.count({
+    const total = await client.exerciseOnTrainingSessions.count({
       where: whereCondition
     })
 
@@ -98,7 +98,7 @@ export class SessionService {
     const client = this.clientService.getClient();
     const whereCondition = this.parseCustomFilterGroups(filters, customFilters);
 
-    const data = await client.trainingSessionGroupTemp.findMany({
+    const data = await client.trainingSessionGroup.findMany({
       include: {
         trainingSets: {
           include: {
@@ -111,7 +111,7 @@ export class SessionService {
       },
       where: whereCondition
     })
-    const total = await client.trainingSessionGroupTemp.count({
+    const total = await client.trainingSessionGroup.count({
       where: whereCondition
     })
 
@@ -132,19 +132,19 @@ export class SessionService {
 
   async findLastSessionByExercise(exerciseUuid: string, excludedSessionGroupUuid?: string) {
     const client = this.clientService.getClient();
-    const where: Prisma.ExerciseOnTrainingSessionsTempWhereInput = {
+    const where: Prisma.ExerciseOnTrainingSessionsWhereInput = {
       exercise: {
         uuid: exerciseUuid
       },
     }
     if (excludedSessionGroupUuid) {
-      where.trainingSessionGroupTemp = {
+      where.trainingSessionGroup = {
         isNot: {
           uuid: excludedSessionGroupUuid
         }
       }
     }
-    const resultSessionGroup = await client.trainingSessionGroupTemp.findFirst({
+    const resultSessionGroup = await client.trainingSessionGroup.findFirst({
       select: {
         uuid: true,
       },
@@ -169,9 +169,9 @@ export class SessionService {
       return null;
     }
 
-    const resultSession = await client.exerciseOnTrainingSessionsTemp.findMany({
+    const resultSession = await client.exerciseOnTrainingSessions.findMany({
       where: {
-        trainingSessionGroupTemp: {
+        trainingSessionGroup: {
           uuid: {
             equals: resultSessionGroup.uuid
           }
@@ -200,7 +200,7 @@ export class SessionService {
     };
   }
 
-  parseCustomFilters(baseFilters: Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'], customFilter: ListSessionsCustomFilters): Prisma.ExerciseOnTrainingSessionsTempFindManyArgs['where'] {
+  parseCustomFilters(baseFilters: Prisma.ExerciseOnTrainingSessionsFindManyArgs['where'], customFilter: ListSessionsCustomFilters): Prisma.ExerciseOnTrainingSessionsFindManyArgs['where'] {
     switch (customFilter) {
       case 'today':
         const today = new Date().setHours(0, 0, 0).valueOf();
@@ -219,7 +219,7 @@ export class SessionService {
 
   }
 
-  parseCustomFilterGroups(baseFilters: Prisma.TrainingSessionGroupTempFindManyArgs['where'], customFilter: ListSessionsCustomFilters): Prisma.TrainingSessionGroupTempFindManyArgs['where'] {
+  parseCustomFilterGroups(baseFilters: Prisma.TrainingSessionGroupFindManyArgs['where'], customFilter: ListSessionsCustomFilters): Prisma.TrainingSessionGroupFindManyArgs['where'] {
     switch (customFilter) {
       case 'today':
         const today = new Date().setHours(0, 0, 0).valueOf();
@@ -262,12 +262,12 @@ export class SessionService {
       return newAcc
     }, [])
 
-    await client.exerciseOnTrainingSessionsTemp.deleteMany({ where: {} })
-    await client.trainingSessionGroupTemp.deleteMany({
+    await client.exerciseOnTrainingSessions.deleteMany({ where: {} })
+    await client.trainingSessionGroup.deleteMany({
       where: {},
     });
     const promises = sessionGroups.map(async (group) => {
-      const dbGroup = await client.trainingSessionGroupTemp.create({
+      const dbGroup = await client.trainingSessionGroup.create({
         select: {
           uuid: true,
         },
@@ -296,7 +296,7 @@ export class SessionService {
 
   private async createSet(createSetDto: CreateSessionTempDto) {
     const client = this.clientService.getClient();
-    const result = await client.exerciseOnTrainingSessionsTemp.create({
+    const result = await client.exerciseOnTrainingSessions.create({
       data: createSetDto.getDto()
     });
 

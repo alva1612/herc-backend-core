@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Query, Patch, Param, Put } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Patch, Param, Put, Delete } from '@nestjs/common';
 import { ExerciseService } from '../exercise.service';
 import { CreateExerciseDto } from '../dto/create-exercise.dto';
 import { UpdateExerciseDto } from '../dto/update-exercise.dto';
@@ -20,5 +20,10 @@ export class ExerciseController {
   @Get()
   findAll(@Query('expand') expand, @Query('filters') filters = "{}", @Query('customFilters') customFilters = "{}") {
     return this.exerciseService.findAll({ expand, customFilters: JSON.parse(customFilters), where: JSON.parse(filters), });
+  }
+
+  @Delete(':identifier')
+  remove(@Param('identifier') identifier: string) {
+    return this.exerciseService.remove(identifier);
   }
 }

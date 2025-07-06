@@ -120,6 +120,19 @@ export class ExerciseService {
     }
   }
 
+  async remove(identifier: string | number) {
+    const client = this.clientService.getClient();
+    const where = PrismaUtils.getEitherUniqueFieldFromValue(identifier);
+    await Promise.all([
+      client.muscleSectionExercises.deleteMany({ where: { exercise: where } }),
+      client.exerciseOnTrainingSessions.deleteMany({ where: { exercise: where } }),
+      client.exerciseOnTrainingPlans.deleteMany({ where: { exercise: where } })
+    ]);
+    return client.exercise.delete({
+      where,
+    });
+  }
+
   private handleFilters(customFilters): FindManyArgs['filters'] {
     const filterObj: ReturnType<typeof this.handleFilters> = {}
     if (customFilters.muscleSection)
